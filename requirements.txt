@@ -1,0 +1,8 @@
+langchain
+langchain_core
+langchain_openai
+dotenv
+transformers
+torch
+hf_xet
+pillow
