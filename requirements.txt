@@ -6,3 +6,5 @@ transformers
 torch
 hf_xet
 pillow
+langchain-text-splitters
+pymupdf
