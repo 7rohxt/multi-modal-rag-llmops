@@ -8,3 +8,4 @@ hf_xet
 pillow
 langchain-text-splitters
 pymupdf
+faiss-cpu
