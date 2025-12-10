@@ -9,3 +9,7 @@ pillow
 langchain-text-splitters
 pymupdf
 faiss-cpu
+sentence_transformers
+nbformat
+rank_bm25
+redis
