@@ -24,3 +24,12 @@ QUESTION:
 
 Final Answer:
 """
+
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+def get_chat_prompt():
+    return ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful and conversational assistant."),
+        MessagesPlaceholder("history"),
+        ("human", "{input}")
+    ])

@@ -3,7 +3,8 @@ from src.rerankers import load_reranker, rerank_documents, show_reranked
 from src.router import load_router_llm, route_query
 from src.generation import generate_answer_rag, load_generator_llm, build_context, generate_answer_chat
 from src.caching import load_redis_client, cache_get, cache_set
-from src.prompts import ROUTER_PROMPT, GENERATION_PROMPT
+from src.memory import build_memory_chain, generate_answer_chat_memory, memory_set 
+from src.prompts import ROUTER_PROMPT, GENERATION_PROMPT, get_chat_prompt
 
 redis_client = load_redis_client()
 router_llm = load_router_llm()
@@ -16,13 +17,19 @@ bm25_retriever   = get_bm25_retriever(all_docs)
 
 reranker = load_reranker()
 
+session_id = 1
+
 def main (query: str):
 
     # -------------------- Router --------------------
     router_decision = route_query(query, router_llm, ROUTER_PROMPT)
+
+
     if router_decision == "direct":
-        assistant_response = generate_answer_chat(query, generator_llm)
-        cache_set(query, assistant_response, redis_client)      
+        # -------------------- Memory (For Non Rag Questions) --------------------
+        memory_chain = build_memory_chain(generator_llm, get_chat_prompt())
+        assistant_response = generate_answer_chat_memory(query, 1, memory_chain )
+        cache_set(query, assistant_response, redis_client) 
         return assistant_response
     
 
@@ -46,12 +53,17 @@ def main (query: str):
     context = build_context(reranked_docs)
     assistant_response = generate_answer_rag(query, context, generator_llm, GENERATION_PROMPT)
     cache_set(query, assistant_response, redis_client)
+
+    memory_set(1, query, assistant_response)
     return assistant_response
 
 
 
 if __name__ == "__main__":
-    query = "Explain Microsoft's cloud revenue growth in 2024."
-    query = "hi"
+    # query = "Explain Microsoft's cloud revenue growth in 2024."
+    query = "My phone number is 95XXXXXXX8"
+    asssistant_response = main(query)
+    print(asssistant_response)
+    query = "what was my previous message?"
     asssistant_response = main(query)
     print(asssistant_response)
