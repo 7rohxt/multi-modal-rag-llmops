@@ -7,3 +7,20 @@ Return ONLY one word:
 
 User query: {query}
 """
+
+GENERATION_PROMPT = """
+You are an expert financial assistant. Answer the user's question STRICTLY based on the provided context from annual reports.
+
+If the context does not contain the answer, say:
+"I cannot find this information in the available documents."
+
+--------------------
+CONTEXT:
+{context}
+--------------------
+
+QUESTION:
+{query}
+
+Final Answer:
+"""
