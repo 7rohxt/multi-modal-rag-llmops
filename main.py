@@ -76,10 +76,13 @@ def main (query: str):
 
 
 if __name__ == "__main__":
-    query = "Explain Microsoft's cloud revenue growth in 2024."
-    # query = "My phone number is 95XXXXXXX8"
+    # query = "Explain Microsoft's cloud revenue growth in 2024."
+    query = "My phone number is 9566123456"
     asssistant_response = main(query)
     print(asssistant_response)
     query = "what was my previous message?"
+    asssistant_response = main(query)
+    print(asssistant_response)
+    query = "give a recipe for butter chicken"
     asssistant_response = main(query)
     print(asssistant_response)
