@@ -4,6 +4,7 @@ from src.router import load_router_llm, route_query
 from src.generation import generate_answer_rag, load_generator_llm, build_context, generate_answer_chat
 from src.caching import load_redis_client, cache_get, cache_set
 from src.memory import build_memory_chain, generate_answer_chat_memory, memory_set 
+from src.guardrails import inbound_check, outbound_check
 from src.prompts import ROUTER_PROMPT, GENERATION_PROMPT, get_chat_prompt
 
 redis_client = load_redis_client()
@@ -21,6 +22,14 @@ session_id = 1
 
 def main (query: str):
 
+    # -------------------- Inbound Check - Guadrails--------------------    
+    inbound = inbound_check(query)
+    if inbound["status"] == "blocked":
+        blocked_message = inbound["message"]   
+        memory_set(session_id, query, blocked_message) 
+        return blocked_message 
+    query = inbound["cleaned_query"]
+
     # -------------------- Router --------------------
     router_decision = route_query(query, router_llm, ROUTER_PROMPT)
 
@@ -29,7 +38,7 @@ def main (query: str):
         # -------------------- Memory (For Non Rag Questions) --------------------
         memory_chain = build_memory_chain(generator_llm, get_chat_prompt())
         assistant_response = generate_answer_chat_memory(query, 1, memory_chain )
-        cache_set(query, assistant_response, redis_client) 
+        memory_set(session_id, query, assistant_response) 
         return assistant_response
     
 
@@ -55,8 +64,14 @@ def main (query: str):
     assistant_response = generate_answer_rag(query, context, generator_llm, GENERATION_PROMPT)
     cache_set(query, assistant_response, redis_client)
 
-    memory_set(1, query, assistant_response)
-    return assistant_response
+
+    # --------------------Outbound Check - Guadrails--------------------
+    safe_output = outbound_check(assistant_response)
+
+    # --------------------Save Output To Memory--------------------
+    memory_set(session_id, query, safe_output)
+
+    return safe_output
 
 
 
