@@ -3,11 +3,21 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # Add this
 from pydantic import BaseModel
 import uvicorn
-from main import main   # Import your existing pipeline
+from main import main
 
 app = FastAPI(title="Annual Report RAG API")
+
+# Add CORS middleware - IMPORTANT!
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (for development)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 class QueryRequest(BaseModel):
     query: str
