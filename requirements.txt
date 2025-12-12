@@ -13,3 +13,5 @@ sentence_transformers
 nbformat
 rank_bm25
 redis
+fastapi
+uvicorn
