@@ -174,8 +174,16 @@
                   <Database />
                   <span className="text-sm font-semibold text-gray-700">Retrieved</span>
                 </div>
-                <div className="ml-6 text-sm text-gray-600">
-                  <span className="font-mono font-semibold text-blue-600">{meta.retrieved_chunks}</span> documents
+                <div className="ml-6 text-sm text-gray-600 space-y-1">
+                  {meta.bm25_chunks !== undefined && (
+                    <div className="text-xs">BM25: <span className="font-mono font-semibold text-blue-600">{meta.bm25_chunks}</span> chunks</div>
+                  )}
+                  {meta.semantic_chunks !== undefined && (
+                    <div className="text-xs">Semantic: <span className="font-mono font-semibold text-blue-600">{meta.semantic_chunks}</span> chunks</div>
+                  )}
+                  <div className="text-xs pt-1 border-t border-gray-200">
+                    Combined: <span className="font-mono font-semibold text-blue-600">{meta.retrieved_chunks}</span> unique documents
+                  </div>
                 </div>
               </div>
             )}

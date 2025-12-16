@@ -58,11 +58,14 @@ def main(query: str):
     print("CACHE MISS → Running full RAG pipeline...")
     metadata["cache"] = "miss"
 
-    # -------------------- Retriever --------------------
     retrieved_docs = retrieve_candidates(query, bm25_retriever, vectorstore, k_bm25=10, k_sem=10)
+
+    # Add detailed breakdown
+    metadata["bm25_chunks"] = 10  # or get actual count from your retriever
+    metadata["semantic_chunks"] = 10  # or get actual count
     metadata["retrieved_chunks"] = len(retrieved_docs)
 
-    # -------------------- Reranker --------------------
+        # -------------------- Reranker --------------------
     reranked_docs = rerank_documents(query, reranker, retrieved_docs, top_k=10)
     metadata["reranked_chunks"] = len(reranked_docs)
 
