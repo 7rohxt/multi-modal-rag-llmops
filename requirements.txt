@@ -15,3 +15,5 @@ rank_bm25
 redis
 fastapi
 uvicorn
+boto3
+opensearch-py
