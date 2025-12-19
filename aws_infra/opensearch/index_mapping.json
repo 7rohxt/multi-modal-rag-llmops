@@ -1,0 +1,20 @@
+{
+  "settings": {
+    "index": {
+      "knn": true
+    }
+  },
+  "mappings": {
+    "properties": {
+      "content": { "type": "text" },
+      "embedding": {
+        "type": "knn_vector",
+        "dimension": 3072
+      },
+      "company": { "type": "keyword" },
+      "year": { "type": "integer" },
+      "doctype": { "type": "keyword" },
+      "source": { "type": "keyword" }
+    }
+  }
+}
