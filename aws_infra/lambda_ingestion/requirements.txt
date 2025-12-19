@@ -1,0 +1,9 @@
+boto3==1.35.76
+opensearch-py==2.7.1
+pypdf==5.1.0
+openai==1.58.1
+requests==2.32.3
+langchain-text-splitters==0.3.4
+langchain-openai==0.2.14
+langchain-core==0.3.28
+requests-aws4auth
