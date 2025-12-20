@@ -3,9 +3,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from dotenv import load_dotenv
 import os
-
-from aws_infra.opensearch.client import get_opensearch_client
-   
+# from aws_infra.opensearch.client import get_opensearch_client
+  
 
 load_dotenv()
 
@@ -17,15 +16,11 @@ def get_embedding_model():
     )
 
 
+# def load_opensearch():
+#     client = get_opensearch_client()
+#     print("OpenSearch client ready.")
+#     return client
 
-
-def load_opensearch():
-    client = get_opensearch_client()
-    print("OpenSearch client ready.")
-    return client
-
-
-from langchain_core.documents import Document
 
 def semantic_retrieve_os(query, client, embedder, index_name, k=10):
     query_vector = embedder.embed_query(query)
@@ -148,17 +143,17 @@ def show(results, preview_chars=300):
         print(doc.page_content[:preview_chars], "...")
 
 
-if __name__ == "__main__":
-    embedder = get_embedding_model()
-    client = load_opensearch()
+# if __name__ == "__main__":
+#     embedder = get_embedding_model()
+#     client = load_opensearch()
 
-    len_bm25_docs, len_semantic_docs, len_combined, results = retrieve_candidates_os(
-        query="Explain total revenue in 2024",
-        client=client,
-        embedder=embedder,
-        index_name="rag-docs"
-    )
-    print(f"BM25 retrieved: {len_bm25_docs}")
-    print(f"Semantic retrieved: {len_semantic_docs}")
-    print(f"Combined unique: {len_combined}")
-    show(results)
+#     len_bm25_docs, len_semantic_docs, len_combined, results = retrieve_candidates_os(
+#         query="Explain total revenue in 2024",
+#         client=client,
+#         embedder=embedder,
+#         index_name="rag-docs"
+#     )
+#     print(f"BM25 retrieved: {len_bm25_docs}")
+#     print(f"Semantic retrieved: {len_semantic_docs}")
+#     print(f"Combined unique: {len_combined}")
+#     show(results)
