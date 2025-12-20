@@ -134,11 +134,7 @@ def retrieve_candidates_os(
     # 4) Deduplicate
     combined = deduplicate_docs(combined)
 
-    print(f"BM25 retrieved: {len(bm25_docs)}")
-    print(f"Semantic retrieved: {len(semantic_docs)}")
-    print(f"Combined unique: {len(combined)}")
-
-    return combined
+    return len(bm25_docs), len(semantic_docs), len(combined), combined
 
 
 def show(results, preview_chars=300):
@@ -156,11 +152,13 @@ if __name__ == "__main__":
     embedder = get_embedding_model()
     client = load_opensearch()
 
-    results = retrieve_candidates_os(
+    len_bm25_docs, len_semantic_docs, len_combined, results = retrieve_candidates_os(
         query="Explain total revenue in 2024",
         client=client,
         embedder=embedder,
         index_name="rag-docs"
     )
-
+    print(f"BM25 retrieved: {len_bm25_docs}")
+    print(f"Semantic retrieved: {len_semantic_docs}")
+    print(f"Combined unique: {len_combined}")
     show(results)
