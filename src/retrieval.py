@@ -2,9 +2,10 @@ import os
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from dotenv import load_dotenv
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from aws_infra.opensearch.client import get_opensearch_client
+   
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ def get_embedding_model():
     )
 
 
-from aws_infra.opensearch.client import get_opensearch_client
+
 
 def load_opensearch():
     client = get_opensearch_client()
