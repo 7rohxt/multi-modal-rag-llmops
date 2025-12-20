@@ -1,11 +1,13 @@
 import os
-from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from dotenv import load_dotenv
-from langchain_community.retrievers import BM25Retriever
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 load_dotenv()
+
 
 def get_embedding_model():
     return OpenAIEmbeddings(
@@ -13,18 +15,84 @@ def get_embedding_model():
         openai_api_key=os.getenv("MY_OPENAI_API_KEY")
     )
 
-def load_faiss_index(embedding, index_path="faiss_index"):
-    vectorstore = FAISS.load_local(
-        index_path,
-        embeddings=embedding,
-        allow_dangerous_deserialization=True
+
+from aws_infra.opensearch.client import get_opensearch_client
+
+def load_opensearch():
+    client = get_opensearch_client()
+    print("OpenSearch client ready.")
+    return client
+
+
+from langchain_core.documents import Document
+
+def semantic_retrieve_os(query, client, embedder, index_name, k=10):
+    query_vector = embedder.embed_query(query)
+
+    response = client.search(
+        index=index_name,
+        body={
+            "size": k,
+            "query": {
+                "knn": {
+                    "embedding": {
+                        "vector": query_vector,
+                        "k": k
+                    }
+                }
+            }
+        }
     )
-    print("FAISS index loaded.")
-    return vectorstore
+
+    docs = []
+    for hit in response["hits"]["hits"]:
+        src = hit["_source"]
+        docs.append(
+            Document(
+                page_content=src["content"],
+                metadata={
+                    "source": src.get("source"),
+                    "company": src.get("company"),
+                    "year": src.get("year"),
+                    "doctype": src.get("doctype"),
+                }
+            )
+        )
+
+    return docs
 
 
-def semantic_retrieve(query, vectorstore, k=10):
-    return vectorstore.similarity_search(query, k=k)
+def bm25_retrieve_os(query, client, index_name, k=10):
+    response = client.search(
+        index=index_name,
+        body={
+            "size": k,
+            "query": {
+                "match": {
+                    "content": {
+                        "query": query
+                    }
+                }
+            }
+        }
+    )
+
+    docs = []
+    for hit in response["hits"]["hits"]:
+        src = hit["_source"]
+        docs.append(
+            Document(
+                page_content=src["content"],
+                metadata={
+                    "source": src.get("source"),
+                    "company": src.get("company"),
+                    "year": src.get("year"),
+                    "doctype": src.get("doctype"),
+                }
+            )
+        )
+
+    return docs
 
 
 def deduplicate_docs(docs):
@@ -34,8 +102,7 @@ def deduplicate_docs(docs):
     for doc in docs:
         key = (
             doc.metadata.get("source"),
-            doc.metadata.get("page"),
-            doc.page_content[:50]  # stable enough signature
+            doc.page_content[:50]
         )
         if key not in seen:
             unique.append(doc)
@@ -44,19 +111,21 @@ def deduplicate_docs(docs):
     return unique
 
 
-def get_bm25_retriever(docs, k=10):
-    retriever = BM25Retriever.from_documents(docs)
-    retriever.k = k
-    return retriever
+def retrieve_candidates_os(
+    query,
+    client,
+    embedder,
+    index_name,
+    k_bm25=10,
+    k_sem=10
+):
+    # 1) BM25
+    bm25_docs = bm25_retrieve_os(query, client, index_name, k=k_bm25)
 
-
-def retrieve_candidates(query, bm25_retriever, vectorstore, k_bm25=10, k_sem=10):
-    # 1) keyword results
-    bm25_retriever.k = k_bm25
-    bm25_docs = bm25_retriever.invoke(query)
-    
-    # 2) semantic vector results
-    semantic_docs = semantic_retrieve(query, vectorstore, k=k_sem)
+    # 2) Semantic
+    semantic_docs = semantic_retrieve_os(
+        query, client, embedder, index_name, k=k_sem
+    )
 
     # 3) Combine
     combined = bm25_docs + semantic_docs
@@ -64,15 +133,33 @@ def retrieve_candidates(query, bm25_retriever, vectorstore, k_bm25=10, k_sem=10)
     # 4) Deduplicate
     combined = deduplicate_docs(combined)
 
-    print(f"BM25 retrieved: {len(bm25_docs)} chunks")
-    print(f"Semantic retrieved: {len(semantic_docs)} chunks")
+    print(f"BM25 retrieved: {len(bm25_docs)}")
+    print(f"Semantic retrieved: {len(semantic_docs)}")
     print(f"Combined unique: {len(combined)}")
 
     return combined
 
-def show(results):
+
+def show(results, preview_chars=300):
     for i, doc in enumerate(results):
-        print(f"\n----- Chunk {i+1} -----")
-        print("Source:", doc.metadata["source"])
-        print("Page:", doc.metadata["page"])
-        print(doc.page_content[:300], "...")
+        print(f"\n----- Chunk {i + 1} -----")
+        print("Source:", doc.metadata.get("source"))
+        print("Company:", doc.metadata.get("company"))
+        print("Year:", doc.metadata.get("year"))
+        print("Doctype:", doc.metadata.get("doctype"))
+        print("\nContent Preview:")
+        print(doc.page_content[:preview_chars], "...")
+
+
+if __name__ == "__main__":
+    embedder = get_embedding_model()
+    client = load_opensearch()
+
+    results = retrieve_candidates_os(
+        query="Explain total revenue in 2024",
+        client=client,
+        embedder=embedder,
+        index_name="rag-docs"
+    )
+
+    show(results)
