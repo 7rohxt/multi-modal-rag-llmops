@@ -10,4 +10,3 @@ models
 .gitignore
 *.ipynb
 *.md
-src/aws_infra
