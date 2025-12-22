@@ -7,13 +7,14 @@ torch
 hf_xet
 pillow
 langchain-text-splitters
-pymupdf
-faiss-cpu
+# pymupdf
+# faiss-cpu
 sentence_transformers
 nbformat
-rank_bm25
+# rank_bm25
 redis
 fastapi
 uvicorn
 boto3
 opensearch-py
+requests_aws4auth
