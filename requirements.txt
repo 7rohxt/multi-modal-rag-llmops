@@ -7,7 +7,7 @@ torch
 hf_xet
 pillow
 langchain-text-splitters
-# pymupdf
+pymupdf
 # faiss-cpu
 sentence_transformers
 nbformat
@@ -18,3 +18,4 @@ uvicorn
 boto3
 opensearch-py
 requests_aws4auth
+gunicorn
