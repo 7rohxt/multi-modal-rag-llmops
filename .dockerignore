@@ -1,0 +1,13 @@
+.venv
+.env
+notebooks
+assets
+data
+faiss_index
+frontend
+knowledge_base
+models
+.gitignore
+*.ipynb
+*.md
+src/aws_infra
