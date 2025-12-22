@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import uvicorn
 from main import main
 
 app = FastAPI(title="Annual Report RAG API")
@@ -30,6 +29,3 @@ def ask_question(req: QueryRequest):
 @app.get("/")
 def health_check():
     return {"status": "ok", "message": "RAG server running"}
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
