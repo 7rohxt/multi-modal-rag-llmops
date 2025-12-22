@@ -9,8 +9,7 @@ from src.prompts import ROUTER_PROMPT, GENERATION_PROMPT, get_chat_prompt
 from src.aws_infra.opensearch.client import get_opensearch_client
 import os 
 
-use_aws = os.getenv("USE_AWS_REDIS").lower() == "true"
-redis_client = load_redis_client(use_aws=use_aws)
+redis_client = load_redis_client()
 
 initialize_redis(redis_client)  # for src/memory.py
 
