@@ -70,7 +70,10 @@
       const [isLoading, setIsLoading] = useState(false);
       const messagesEndRef = useRef(null);
 
-      const API_URL = 'http://127.0.0.1:8000';
+      // const API_URL = 'http://127.0.0.1:8000'; // # For Local
+      // const API_URL = 'http://18.60.153.216:8000'; // # For AWS EC2 
+      const API_URL = 'https://d1527gevntotcl.cloudfront.net'; // # For Cloudfront Distribution
+
 
       useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -111,16 +114,18 @@
           }]);
 
         } catch (err) {
-          console.error('Error:', err);
+          console.error('Fetch failed:', err);
+
           setMessages(prev => [...prev, {
             role: 'error',
-            content: 'Error: Could not connect to server. Make sure backend is running on port 8000.',
+            content: 'Request failed. Please retry in a moment.',
             time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
           }]);
         } finally {
           setIsLoading(false);
         }
       };
+      
 
       const renderMetadataCard = (msg, idx) => {
         const meta = msg.metadata || {};
@@ -360,4 +365,4 @@
     ReactDOM.render(<RAGChatbot />, document.getElementById('root'));
   </script>
 </body>
-</html>
+</html> 
