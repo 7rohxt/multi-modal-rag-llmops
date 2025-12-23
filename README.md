@@ -3,7 +3,7 @@ An end-to-end Retrieval-Augmented Generation (RAG) system for answering analytic
 
 
 ## Architecture Overview 
-- Frontend: Static UI hosted on S3, delivered via CloudFront  
+- Frontend: Static React UI hosted on S3, delivered via CloudFront  
 - Backend: FastAPI + Gunicorn API behind Application Load Balancer (ALB)  
 - Retrieval: OpenSearch (BM25 + dense vectors)  
 - Reranking: Cross-encoder–based reranker (top-k refinement)  
@@ -12,7 +12,7 @@ An end-to-end Retrieval-Augmented Generation (RAG) system for answering analytic
 
 
 ## Architecture Diagram 
-<img src="assets/architecture.png" width="100%" />
+<img src="assets/architecture.JPG" width="100%" />
 
 
 ## Output Images 
