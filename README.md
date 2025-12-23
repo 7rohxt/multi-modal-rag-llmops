@@ -12,32 +12,93 @@ An end-to-end Retrieval-Augmented Generation (RAG) system for answering analytic
 
 
 ## Architecture Diagram 
-<img src="assets/architecture.png" width="75%" />
+<img src="assets/architecture.png" width="100%" />
 
 
 ## Output Images 
 
-#### AWS CloudFront Deployment
+## AWS CloudFront Deployment
 
-<img src="assets/cloudfront_deployfinal.png" width="75%" />
+<img src="assets/cloudfront_deployfinal.png" width="100%" />
 
 #### Lambda Ingestion: S3 → OpenSearch
 
 <p align="center">
-  <img src="assets/ingestion_cloudwatch_cropped.png" width="48%" height="460" />
-  <img src="assets/ingestion_cloudwatch2_cropped.png" width="48%" height="460" />
+  <img src="assets/ingestion_cloudwatch_cropped.png" width="49%" height="460" />
+  <img src="assets/ingestion_cloudwatch2_cropped.png" width="49%" height="460" />
 </p>
 
-#### Guardrails 
+### Guardrails 
 
 **Off-topic guardrail**  
-<img src="assets/off_topic_guardrail.png" width="70%" />
+<img src="assets/off_topic_guardrail.png" width="100%" />
 
 **Token-level redaction**  
-<img src="assets/token_level_redaction.png" width="40%" />
+<img src="assets/token_level_redaction.png" width="70%" />
 
 #### Cache Hit (AWS ElastiCache)
-<img src="assets/cache_hit.png" width="20%" />
+<img src="assets/cache_hit.png" width="35%" />
+
+## How to Run & Deploy
+
+This project is designed to run as a containerized backend on AWS, with a static frontend served via CloudFront.
+
+**Prerequisites:** AWS account, Docker, OpenSearch knowledge
+
+### Data Ingestion Pipeline (One-time Setup)
+
+1. **Lambda Function Deployment**
+   - Build the Lambda Docker image from `src/aws_infra/lambda_ingestion/`
+   - Push the image to **Amazon ECR**
+   - Create a Lambda function using the ECR image
+   - Configure environment variables (OpenSearch host, index name, OpenAI API key)
+
+2. **S3 Trigger Configuration**
+   - Create an S3 bucket for raw documents (PDFs)
+   - Add an S3 event trigger: `s3:ObjectCreated:*` → Lambda function
+   - Upload PDFs with naming format: `CompanyName-Year-DocType.pdf` (e.g., `Microsoft-2024-Annual-Report.pdf`)
+
+3. **Verification**
+   - Check CloudWatch Logs for ingestion progress
+   - Verify chunks are indexed in OpenSearch via Dashboards
+
+### Backend (RAG API)
+
+1. **Provision & Configure Infrastructure**
+   - Create an **OpenSearch domain**
+   - Apply the index mapping from `src/aws_infra/opensearch/index_mapping.json` via OpenSearch Dashboards
+   - Set up **ElastiCache (Redis)** for caching
+   - Create an **ECR repository** for the backend image
+   - Create a `.env` file with required credentials (see `CONFIGURATION.md`)
+
+2. **Container Build & Deployment**
+   - Build the backend Docker image locally
+   - Push the image to **Amazon ECR**
+   - Launch an **EC2 instance**, install Docker, and pull the image from ECR
+   - Run the container exposing the FastAPI service on port `8000`
+
+3. **Public Access**
+   - Create an **Application Load Balancer (ALB)** pointing to the EC2 instance
+   - Verify the backend is reachable via the ALB DNS endpoint
+
+
+### Frontend (Static UI)
+
+1. Upload `index.html` to an **S3 bucket**
+2. Create a **CloudFront distribution** with S3 as the origin
+3. Update the frontend to call the backend **CloudFront API endpoint**
+4. Access the application via the frontend CloudFront URL
+
+
+### Traffic Flow (High Level)
+
+```
+Browser → CloudFront (Frontend) → S3 (index.html)
+        ↓
+Browser → CloudFront (Backend API) → ALB → EC2 (FastAPI + Gunicorn)
+
+```
+
 
 ## Folder Structure
 
