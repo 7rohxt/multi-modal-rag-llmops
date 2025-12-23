@@ -10,22 +10,20 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 def get_opensearch_client():
     raw_host = os.getenv("OPENSEARCH_HOST")
     if not raw_host:
-        raise ValueError("OPENSEARCH_HOST not set")
+        raise RuntimeError("OPENSEARCH_HOST not set")
 
     parsed = urlparse(raw_host if raw_host.startswith("http") else f"https://{raw_host}")
     host = parsed.hostname
     port = parsed.port or 443
 
-    region = os.getenv("AWS_REGION", "ap-south-2")
+    region = os.getenv("AWS_REGION")
+    access_key = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
-    credentials = boto3.Session().get_credentials()
-    awsauth = AWS4Auth(
-        credentials.access_key,
-        credentials.secret_key,
-        region,
-        "es",
-        session_token=credentials.token,
-    )
+    if not all([region, access_key, secret_key]):
+        raise RuntimeError("AWS credentials or region not set in environment variables")
+
+    awsauth = AWS4Auth(access_key, secret_key, region, "es")
 
     return OpenSearch(
         hosts=[{"host": host, "port": port}],
